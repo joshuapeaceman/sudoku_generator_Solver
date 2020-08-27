@@ -20,18 +20,15 @@ class AppCtrl:
     def connect_gui_element_interactions(self):
         self._mainWindow.pB_create_new.clicked.connect(lambda: self.build_sudoku(3, 17))
 
-
-
-
     def build_sudoku(self, m, min_filled_fields):
-        n = m**2
+        n = m ** 2
         board = [[None for _ in range(n)] for _ in range(n)]
 
         def backtracking(c=0):
             i, j = divmod(c, n)
             i0, j0 = i - i % m, j - j % m  # Origin of mxm block
-            for x in range(1, n+1):
-                number = random.randint(1,n)
+            for x in range(1, n + 1):
+                number = random.randint(1, n)
                 if (number not in board[i]  # row
                         and all(row[j] != number for row in board)  # column
                         and all(number not in row[j0:j0 + m]  # block
@@ -49,7 +46,7 @@ class AppCtrl:
         self.fill_tableWidget_with_sudoku_data(m)
 
     def fill_tableWidget_with_sudoku_data(self, m):
-        n = m**2
+        n = m ** 2
         self._mainWindow.sudokuTable.setRowCount(n)
         self._mainWindow.sudokuTable.setColumnCount(n)
         # self._mainWindow.sudokuTable.verticalHeader.setVisible(False)
