@@ -1,26 +1,30 @@
 import random
-
-from PyQt5.QtWidgets import QTableWidgetItem
+from PyQt5 import QtWidgets
+from datetime import datetime
+import timeit
 
 from src.gui import SudokuMainWindow
-
+from src import Statistics
 
 class AppCtrl:
     def __init__(self):
-        self._mainWindow = None
-        self._sudoku = None
+        self.mainWindow = None
+        self.sudoku = None
+
 
         self.initiate_mainWindow()
         self.connect_gui_element_interactions()
+        self.statistics_modul = Statistics.Statistics(self)
 
     def initiate_mainWindow(self):
-        self._mainWindow = SudokuMainWindow.SudokuMainWindow()
-        self._mainWindow.show()
+        self.mainWindow = SudokuMainWindow.SudokuMainWindow()
+        self.mainWindow.show()
 
     def connect_gui_element_interactions(self):
-        self._mainWindow.pB_create_new.clicked.connect(lambda: self.build_sudoku(3, 17))
+        self.mainWindow.pB_create_new.clicked.connect(lambda: self.build_sudoku(3, 30))
 
-    def build_sudoku(self, m, min_filled_fields):
+    def build_sudoku(self, m, difficulty):
+        self.statistics_modul.game_creation_start_time = timeit.default_timer()
         n = m ** 2
         board = [[None for _ in range(n)] for _ in range(n)]
 
@@ -42,18 +46,32 @@ class AppCtrl:
                 board[i][j] = None
                 return None
 
-        self._sudoku = backtracking()
-        self.fill_tableWidget_with_sudoku_data(m)
+        self.sudoku = backtracking()
+        self.fill_tableWidget_with_sudoku_data(difficulty)
 
-    def fill_tableWidget_with_sudoku_data(self, m):
-        n = m ** 2
-        self._mainWindow.sudokuTable.setRowCount(n)
-        self._mainWindow.sudokuTable.setColumnCount(n)
-        # self._mainWindow.sudokuTable.verticalHeader.setVisible(False)
-
-        for row, row_data in enumerate(self._sudoku):
+    def fill_tableWidget_with_sudoku_data(self, difficulty):
+        self.clear_sudoku()
+        self.statistics_modul.empty_fields_cnt = 0
+        for row, row_data in enumerate(self.sudoku):
             for column, column_data in enumerate(row_data):
-                self._mainWindow.sudokuTable.setItem(row, column, QTableWidgetItem(str(column_data)))
+                if not random.randint(1, 81) <= difficulty:
+                    self.mainWindow.findChild(QtWidgets.QLineEdit, self.create_lineEdit_name(column, row)).setText(
+                        str(column_data))
+                else:
+                    self.statistics_modul.empty_fields_cnt += 1
+
+        self.statistics_modul.game_creation_end_time = timeit.default_timer()
+        self.statistics_modul.how_many_fields_are_empty()
+        self.statistics_modul.calculate_game_creation_time()
+        self.statistics_modul.game_start_time = datetime.now()
+
+    def clear_sudoku(self):
+        for row, row_data in enumerate(self.sudoku):
+            for column, column_data in enumerate(row_data):
+                self.mainWindow.findChild(QtWidgets.QLineEdit, self.create_lineEdit_name(column, row)).setText('')
+
+    def create_lineEdit_name(self, column, row):
+        return 's' + str(row + 1) + str(column + 1)
 
     def generate_number_and_check_legitimacy(self):
         pass
